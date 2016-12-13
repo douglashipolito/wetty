@@ -54,7 +54,7 @@ if (opts.sshhost) {
 }
 
 if (opts.sshauth) {
-	sshauth = opts.sshauth
+    sshauth = opts.sshauth
 }
 
 if (opts.sshuser) {
@@ -102,19 +102,42 @@ io.on('connection', function(socket){
     }
 
     var term;
-    if (process.getuid() == 0) {
-        term = pty.spawn('/bin/login', [], {
-            name: 'xterm-256color',
-            cols: 80,
-            rows: 30
-        });
-    } else {
-        term = pty.spawn('ssh', [sshuser + sshhost, '-p', sshport, '-o', 'PreferredAuthentications=' + sshauth], {
-            name: 'xterm-256color',
-            cols: 80,
-            rows: 30
-        });
+    var userName = process.env.USER;
+
+    var loginPath = '/bin/login';
+
+    if(process.platform === 'darwin') {
+        loginPath = '/usr/bin/login';
     }
+
+    term = pty.spawn(loginPath, [userName], {
+        name: 'xterm-256color',
+        cols: 80,
+        rows: 30
+    });
+
+    //
+    //Set login by default
+    //
+    // if (process.getuid() == 0) {
+    //     var loginPath = '/bin/login';
+
+    //     if(process.platform === 'darwin') {
+    //         loginPath = '/usr/bin/login';
+    //     }
+
+    //     term = pty.spawn(loginPath, [], {
+    //         name: 'xterm-256color',
+    //         cols: 80,
+    //         rows: 30
+    //     });
+    // } else {
+    //     term = pty.spawn('ssh', [sshuser + sshhost, '-p', sshport, '-o', 'PreferredAuthentications=' + sshauth], {
+    //         name: 'xterm-256color',
+    //         cols: 80,
+    //         rows: 30
+    //     });
+    // }
     console.log((new Date()) + " PID=" + term.pid + " STARTED on behalf of user=" + sshuser)
     term.on('data', function(data) {
         socket.emit('output', data);
