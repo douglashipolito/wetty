@@ -62,6 +62,7 @@ function Terminal(opts) {
     }
 
     var io = server(httpserv,{path: '/wetty/socket.io'});
+
     io.on('connection', function(socket){
         var sshuser = '';
         var request = socket.request;
@@ -125,6 +126,14 @@ function Terminal(opts) {
             term.write(data);
         });
         socket.on('disconnect', function() {
+            term.end();
+        });
+
+        app.on("terminal.input", function (data) {
+            term.write(data);
+        });
+
+        app.on("terminal.exit", function () {
             term.end();
         });
     })
